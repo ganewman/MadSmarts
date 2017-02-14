@@ -1,8 +1,3 @@
-//Allard Peng
-//APCS2 pd 3
-//HW06--Step 1: Split, Step 2: ?, Step 3: Sorted!
-//2017-02-10
-
 /*=====================================
   class MergeSort
   Implements mergesort on array of ints.
