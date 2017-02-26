@@ -45,7 +45,7 @@ public class MergeSortTest implements Runnable {
     latch.await();
 
     double avg = time / rounds;
-    System.out.format("%s,%s,%sns,%sns\n", rounds, size, time, avg);
+    System.out.format("%s,%s\n", size, avg);
     time = 0;
   }
 
@@ -57,6 +57,7 @@ public class MergeSortTest implements Runnable {
    *              2- rounds per test.
    */
   public static void main( String[] args ) throws InterruptedException {
+    // {{{ Set variables
     try {
       size = Integer.parseInt(args[0]);
     } catch ( NumberFormatException | ArrayIndexOutOfBoundsException e ) {
@@ -74,11 +75,14 @@ public class MergeSortTest implements Runnable {
     } catch ( NumberFormatException | ArrayIndexOutOfBoundsException e ) {
       rounds = 100000;
     }
+    // }}}
 
     int _threads = Runtime.getRuntime().availableProcessors() - 1;
     service = Executors.newFixedThreadPool(_threads);
-    System.out.format("Running with %s parallel threads.\n", _threads);
-    System.out.println("rounds,size,time,average");
+
+    System.out.format("Running %s tests with %s rounds per test using %s parallel threads.\n",
+        tests, rounds, _threads);
+    System.out.println("size,average (ns)");
 
     while ( true ) {
       for ( int i = 0; i < tests; i++ ) {
@@ -91,3 +95,4 @@ public class MergeSortTest implements Runnable {
   }
 }
 
+// vim: foldmethod=marker foldlevel=0
