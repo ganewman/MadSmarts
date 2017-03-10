@@ -14,7 +14,7 @@ p <-
     ggtitle("Size vs. Time") +
     theme(plot.title = element_text(size=20, face="bold",
                                     margin=margin(10, 0, 10, 0), hjust=0.5)) +
-    coord_cartesian(xlim=c(0, 1e7), ylim=c(0, 3.1e9)) +
+    coord_cartesian(xlim=c(0, max(data$size)), ylim=c(0, max(data$average))) +
     geom_point(color="midnightblue") +
     geom_smooth(method = "auto") +
 
