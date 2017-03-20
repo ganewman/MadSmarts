@@ -8,10 +8,10 @@ was added, including the ability to utilize multiple threads.
 ## MergeSortTest.java
 
 Multiple arguments can optionally be passed to the program. One can specify the
-initial size of the dataset, the number of tests to perform per size, and the
-number of runs to perform per test. The program requires the JDK to be
+initial size of the dataset, the number of runs to perform per size, and the
+number of tests to perform per run. Compilation requires the JDK to be
 installed. It uses `n - 1` threads to attempt to keep your computer somewhat
-functional while it runs, where `n` is the number of logical processors your
+responsive while it runs, where `n` is the number of logical processors your
 machine has.
 
     javac *.java && java -server -d64 MergeSortTest 100 5 10000 | tee -a results.csv
@@ -23,16 +23,15 @@ rounds and discard earlier data. As of right now, it is simpler to just run more
 rounds because the number of iterations it takes for the JVM to fully optimize
 code is different for each computer.
 
-The program will run until terminated, printing to standard out using a csv
+The program will run until terminated, printing to standard output using a csv
 format every time it finishes a test. Output from one run of the program might
 look like:
 
-    Running 1 tests with 1000000 rounds per test using 3 parallel threads.
+    Running 3 runs with 1000000 tests per run using 3 parallel threads.
     size,average (ns)
-    100,13164.29616
-    1000,145306.471754
-    10000,1673280.457576
-    100000,1.8442999933268E7
+    100,15380
+    100,16450
+    100,17055
 
 ## analyze.R
 
@@ -52,7 +51,7 @@ log(n))**, but more data points are needed to make sure.
 
 TODO:
 
-- Test with different `-XX:CompileThreshold=10000` values.
+- Test with different `-XX:CompileThreshold` values.
 
 [1]: http://stackoverflow.com/questions/36198278/
 

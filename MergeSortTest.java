@@ -1,62 +1,61 @@
 /* LAB00 -- What Does the Data Say?
 */
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.math.BigInteger;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MergeSortTest implements Runnable {
-  private static          int             size;
-  private static          int             tests;
-  private static          int             rounds;
+  private static          int        runs;
+  private static          int        tests;
 
+  private static volatile int        size;
+  private static volatile int        _runs;
 
-  private static volatile double          time;
-  private static volatile long            _rounds;
-  private                 long            start;
-
-  private static          ExecutorService service;
-  private static          CountDownLatch  latch;
+  private                 int        _size;
+  private                 long       start;
+  private                 BigInteger time;
 
 
   @Override
   public void run() {
-    int[] data = new int[size];
+    while ( size >= 0 ) {
+      if ( _runs-- <= 1 ) {
+        size *= 10;
+        _runs = runs;
+      }
 
-    for ( int i = 0; i < data.length; i++ ) {
-      data[i] = (int) ( 1000 * Math.random() );
+      time = BigInteger.ZERO;
+      _size = size;
+
+      for ( int i = 0; i < tests; i++ ) {
+        test();
+      }
+
+      System.out.format("%s,%s\n", _size, time.divide(
+            BigInteger.valueOf(tests)));
+    }
+  }
+
+  private void test() {
+    int[] data = new int[_size];
+
+    for ( int i = 0; i < _size; i++ ) {
+      data[i] = ThreadLocalRandom.current().nextInt(0, 1000);
     }
 
     start = System.nanoTime();
     MergeSort.sort(data);
-    time += (System.nanoTime() - start);
-    latch.countDown();
-  }
-
-
-  /** Run a test. Takes the average time in rounds _rounds of testing with
-   * a array of _size size. Prints results in csv format.
-   */
-  public static void test() throws InterruptedException {
-    for ( int i = 0; i < rounds; i++ ) {
-      service.execute(new MergeSortTest());
-    }
-
-    latch.await();
-
-    double avg = time / rounds;
-    System.out.format("%s,%s\n", size, avg);
-    time = 0;
+    time = time.add(BigInteger.valueOf(System.nanoTime() - start));
   }
 
 
   /** main()
    * @param args  Optional. Indexes:
    *              0- Initial size.
-   *              1- tests per size.
-   *              2- rounds per test.
+   *              1- runs per size.
+   *              2- tests per run.
    */
-  public static void main( String[] args ) throws InterruptedException {
+  public static void main( String[] args ) {
     // {{{ Set variables
     try {
       size = Integer.parseInt(args[0]);
@@ -65,32 +64,27 @@ public class MergeSortTest implements Runnable {
     }
 
     try {
-      tests = Integer.parseInt(args[1]);
+      runs = Integer.parseInt(args[1]);
     } catch ( NumberFormatException | ArrayIndexOutOfBoundsException e ) {
-      tests = 3;
+      runs = 3;
     }
 
     try {
-      rounds = Integer.parseInt(args[2]);
+      tests = Integer.parseInt(args[2]);
     } catch ( NumberFormatException | ArrayIndexOutOfBoundsException e ) {
-      rounds = 100000;
+      tests = 100000;
     }
     // }}}
 
     int _threads = Runtime.getRuntime().availableProcessors() - 1;
-    service = Executors.newFixedThreadPool(_threads);
 
-    System.out.format("Running %s tests with %s rounds per test using %s parallel threads.\n",
-        tests, rounds, _threads);
+    System.out.format("Running %s runs with %s tests per run using %s parallel threads.\n",
+        runs, tests, _threads);
     System.out.println("size,average (ns)");
 
-    while ( true ) {
-      for ( int i = 0; i < tests; i++ ) {
-        latch = new CountDownLatch(rounds);
-        test();
-      }
-
-      size *= 10;
+    _runs = runs + 1;
+    for ( int i = 0; i < _threads; i++ ) {
+      new Thread(new MergeSortTest()).start();
     }
   }
 }
