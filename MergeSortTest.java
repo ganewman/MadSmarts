@@ -2,36 +2,33 @@
 */
 
 import java.math.BigInteger;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.Queue;
 
 public class MergeSortTest implements Runnable {
-  private static          int        runs;
-  private static          int        tests;
+  private static final    Queue<Integer> JOBS  = new ConcurrentLinkedQueue<>();
 
-  private static volatile int        size;
-  private static volatile int        _runs;
+  private static          int            runs;
+  private static          int            tests;
+  private static          int            size;
 
-  private                 int        _size;
-  private                 long       start;
-  private                 BigInteger time;
+  private                 int            _size;
+  private                 long           _start;
+  private                 BigInteger     _time;
 
 
   @Override
   public void run() {
-    while ( size >= 0 ) {
-      if ( _runs-- <= 1 ) {
-        size *= 10;
-        _runs = runs;
-      }
-
-      time = BigInteger.ZERO;
-      _size = size;
+    while ( ! JOBS.isEmpty() ) {
+      _time = BigInteger.ZERO;
+      _size = JOBS.poll().intValue();
 
       for ( int i = 0; i < tests; i++ ) {
         test();
       }
 
-      System.out.format("%s,%s\n", _size, time.divide(
+      System.out.format("%s,%s\n", _size, _time.divide(
             BigInteger.valueOf(tests)));
     }
   }
@@ -43,9 +40,9 @@ public class MergeSortTest implements Runnable {
       data[i] = ThreadLocalRandom.current().nextInt(0, 1000);
     }
 
-    start = System.nanoTime();
+    _start = System.nanoTime();
     MergeSort.sort(data);
-    time = time.add(BigInteger.valueOf(System.nanoTime() - start));
+    _time = _time.add(BigInteger.valueOf(System.nanoTime() - _start));
   }
 
 
@@ -76,17 +73,25 @@ public class MergeSortTest implements Runnable {
     }
     // }}}
 
+    // {{{ Generate jobs
+    while ( size >= 0 ) {
+      for ( int i = 0; i < runs; i++ ) {
+        JOBS.add(new Integer(size));
+      }
+      size *= 2;
+    }
+    // }}}
+
     int _threads = Runtime.getRuntime().availableProcessors() - 1;
 
     System.out.format("Running %s runs with %s tests per run using %s parallel threads.\n",
         runs, tests, _threads);
     System.out.println("size,average (ns)");
 
-    _runs = runs + 1;
     for ( int i = 0; i < _threads; i++ ) {
       new Thread(new MergeSortTest()).start();
     }
   }
 }
 
-// vim: foldmethod=marker foldlevel=0
+// vim: foldmethod=marker
